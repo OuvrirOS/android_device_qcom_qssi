@@ -3,13 +3,8 @@
 # Product-specific compile-time definitions.
 #
 
-ALLOW_MISSING_DEPENDENCIES := true
-
-TARGET_BOARD_PLATFORM := msmnile
-TARGET_BOOTLOADER_BOARD_NAME := msmnile
-
 TARGET_ARCH := arm64
-TARGET_ARCH_VARIANT := armv8-a
+TARGET_ARCH_VARIANT := armv8-a-branchprot
 TARGET_CPU_ABI := arm64-v8a
 TARGET_CPU_ABI2 :=
 TARGET_CPU_VARIANT := generic
@@ -116,7 +111,7 @@ TARGET_USES_INTERACTION_BOOST := true
 TARGET_ENABLE_MEDIADRM_64 := true
 
 ifeq ($(ENABLE_VENDOR_IMAGE), false)
-	$(error "Vendor Image is mandatory !!")
+    $(error "Vendor Image is mandatory !!")
 endif
 
 BUILD_BROKEN_DUP_RULES := true
@@ -124,7 +119,6 @@ BUILD_BROKEN_DUP_RULES := true
 # KEYSTONE(I1056bb73cc2f8796ed941b5dd7b333ef15c60891,b/147756744)
 BUILD_BROKEN_NINJA_USES_ENV_VARS := SDCLANG_AE_CONFIG SDCLANG_CONFIG SDCLANG_CONFIG_AOSP SDCLANG_SA_ENABLED
 BUILD_BROKEN_NINJA_USES_ENV_VARS += TEMPORARY_DISABLE_PATH_RESTRICTIONS
-BUILD_BROKEN_PREBUILT_ELF_FILES := true
 BUILD_BROKEN_USES_BUILD_HOST_SHARED_LIBRARY := true
 BUILD_BROKEN_USES_BUILD_HOST_EXECUTABLE := true
 BUILD_BROKEN_USES_BUILD_COPY_HEADERS := true
@@ -132,6 +126,8 @@ BUILD_BROKEN_USES_BUILD_HOST_STATIC_LIBRARY := true
 
 #Enable VNDK Compliance
 BOARD_VNDK_VERSION:=current
+RECOVERY_SNAPSHOT_VERSION := current
+RAMDISK_SNAPSHOT_VERSION := current
 Q_BU_DISABLE_MODULE := true
 
 ###### Dynamic Partition Handling ####
@@ -160,6 +156,16 @@ AB_OTA_PARTITIONS ?= system system_ext product vbmeta_system
 endif
 endif
 ###### Dynamic Partition Handling ####
+
+# Use sha256 for dm-verity partitions
+BOARD_AVB_SYSTEM_ADD_HASHTREE_FOOTER_ARGS += --hash_algorithm sha256
+BOARD_AVB_SYSTEM_EXT_ADD_HASHTREE_FOOTER_ARGS += --hash_algorithm sha256
+BOARD_AVB_PRODUCT_ADD_HASHTREE_FOOTER_ARGS += --hash_algorithm sha256
+
+DIRECTED_VENDOR_SNAPSHOT := true
+DIRECTED_RECOVERY_SNAPSHOT := true
+DIRECTED_RAMDISK_SNAPSHOT := true
+-include vendor/qcom/configs/snapshot_modules/*/*.mk
 
 #################################################################################
 # This is the End of BoardConfig.mk file.

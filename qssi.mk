@@ -1,9 +1,17 @@
 #For QSSI, we build only the system image. Here we explicitly set the images
 #we build so there is no confusion.
 
+TARGET_BOARD_PLATFORM := qssi
+TARGET_BOOTLOADER_BOARD_NAME := qssi
+
+# Skip VINTF checks for kernel configs since we do not have kernel source
+PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS := false
+
 #Enable product partition Native I/F. It is automatically set to current if
 #the shipping API level for the target is greater than 29
 PRODUCT_PRODUCT_VNDK_VERSION := current
+
+RELAX_USES_LIBRARY_CHECK := true
 
 #Enable product partition Java I/F. It is automatically set to true if
 #the shipping API level for the target is greater than 29
@@ -16,6 +24,9 @@ PRODUCT_BUILD_SYSTEM_EXT_IMAGE := false
 PRODUCT_BUILD_ODM_IMAGE := false
 PRODUCT_BUILD_CACHE_IMAGE := false
 PRODUCT_BUILD_USERDATA_IMAGE := false
+
+# Enable debugfs restrictions
+PRODUCT_SET_DEBUGFS_RESTRICTIONS := true
 
 #Also, there is no need to build an OTA package as this will be done later
 #when we combine this system build with the non-system images.
@@ -30,7 +41,7 @@ BOARD_AVB_ENABLE := true
 
 # Retain the earlier default behavior i.e. ota config (dynamic partition was disabled if not set explicitly), so set
 # SHIPPING_API_LEVEL to 28 if it was not set earlier (this is generally set earlier via build.sh per-target)
-SHIPPING_API_LEVEL := 30
+SHIPPING_API_LEVEL := 31
 
 $(call inherit-product-if-exists, vendor/qcom/defs/product-defs/system/cne_url*.mk)
 
@@ -69,10 +80,12 @@ endif
 #### Dynamic Partition Handling
 
 PRODUCT_SOONG_NAMESPACES += \
+    frameworks/base/boot \
+    cts/tests/signature/api-check \
     hardware/google/av \
     hardware/google/interfaces
 
-VENDOR_QTI_PLATFORM := msmnile
+VENDOR_QTI_PLATFORM := qssi
 VENDOR_QTI_DEVICE := qssi
 
 #QSSI configuration
@@ -88,17 +101,19 @@ $(call inherit-product, device/qcom/qssi/common64.mk)
 
 #Inherit all except heap growth limit from phone-xhdpi-2048-dalvik-heap.mk
 PRODUCT_PROPERTY_OVERRIDES  += \
-	dalvik.vm.heapstartsize=8m \
-	dalvik.vm.heapsize=512m \
-	dalvik.vm.heaptargetutilization=0.75 \
-	dalvik.vm.heapminfree=512k \
-	dalvik.vm.heapmaxfree=8m
+     dalvik.vm.heapstartsize=8m \
+     dalvik.vm.heapsize=512m \
+     dalvik.vm.heaptargetutilization=0.75 \
+     dalvik.vm.heapminfree=512k \
+     dalvik.vm.heapmaxfree=8m
 
 
 PRODUCT_NAME := $(VENDOR_QTI_DEVICE)
 PRODUCT_DEVICE := $(VENDOR_QTI_DEVICE)
 PRODUCT_BRAND := qti
 PRODUCT_MODEL := qssi system image for arm64
+
+PRODUCT_EXTRA_VNDK_VERSIONS := 30
 
 #Initial bringup flags
 TARGET_USES_AOSP := false
@@ -199,6 +214,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     persist.vendor.qfp=true
 
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.device_config.runtime_native_boot.iorap_perfetto_enable=true
 
 # USB default HAL
 PRODUCT_PACKAGES += \
